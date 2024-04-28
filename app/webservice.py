@@ -12,6 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from whisper import tokenizer
 from urllib.parse import quote
 
+from .api_key_key_middleware import APIKeyMiddleware
+
 ASR_ENGINE = os.getenv("ASR_ENGINE", "openai_whisper")
 if ASR_ENGINE == "faster_whisper":
     from .faster_whisper.core import transcribe, language_detection
@@ -35,6 +37,10 @@ app = FastAPI(
         "url": projectMetadata['License']
     }
 )
+
+api_key = os.getenv("API_KEY")
+if api_key:
+    app.add_middleware(APIKeyMiddleware, api_key=api_key)
 
 assets_path = os.getcwd() + "/swagger-ui-assets"
 if path.exists(assets_path + "/swagger-ui.css") and path.exists(assets_path + "/swagger-ui-bundle.js"):
