@@ -5,7 +5,8 @@ from typing import BinaryIO, Union, Annotated
 
 import ffmpeg
 import numpy as np
-from fastapi import FastAPI, File, UploadFile, Query, applications
+from fastapi import FastAPI, File, Depends, UploadFile, Query, applications
+from fastapi.security import APIKeyHeader
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -64,8 +65,9 @@ if path.exists(assets_path + "/swagger-ui.css") and path.exists(assets_path + "/
 async def index():
     return "/docs"
 
+api_key_header_auth = APIKeyHeader(name="Authorization", auto_error=False)
 
-@app.post("/asr", tags=["Endpoints"])
+@app.post("/asr", tags=["Endpoints"], dependencies=[Depends(api_key_header_auth)])
 async def asr(
         audio_file: UploadFile = File(...),
         encode: bool = Query(default=True, description="Encode audio first through ffmpeg"),
@@ -90,7 +92,7 @@ async def asr(
 )
 
 
-@app.post("/detect-language", tags=["Endpoints"])
+@app.post("/detect-language", tags=["Endpoints"], dependencies=[Depends(api_key_header_auth)])
 async def detect_language(
         audio_file: UploadFile = File(...),
         encode: bool = Query(default=True, description="Encode audio first through FFmpeg")
